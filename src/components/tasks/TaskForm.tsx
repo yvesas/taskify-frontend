@@ -1,4 +1,6 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../../stores/authStore";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -9,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { Form } from "../ui/form";
-import { useEffect, useState } from "react";
+import { Form, FormField, FormItem, FormLabel, FormControl } from "../ui/form";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface Task {
@@ -20,6 +22,12 @@ interface Task {
   status: string;
 }
 
+const formSchema = z.object({
+  title: z.string().min(2).max(50),
+  description: z.string().min(2).max(50),
+  status: z.enum(["PENDING", "COMPLETED"]),
+});
+
 export const TaskForm = ({
   task,
   onClose,
@@ -27,27 +35,31 @@ export const TaskForm = ({
   task?: Task;
   onClose: () => void;
 }) => {
-  const { handleSubmit, control, setValue } = useForm<Task>({
+  const { token } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: task?.title || "",
       description: task?.description || "",
       status: task?.status || "PENDING",
     },
   });
-  const { token } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (task) {
-      setValue("title", task.title);
-      setValue("description", task.description);
-      setValue("status", task.status);
-    }
-  }, [task, setValue]);
 
   const onSubmit = async (data: Task) => {
+    console.log("onSubmit called ->", data);
     setIsLoading(true);
     try {
+      if (!token) {
+        toast.error("Usuário não autenticado.");
+        return;
+      }
+      if (!data.title || !data.description) {
+        toast.error("Tarefa não informada.");
+        return;
+      }
+
       const response = await fetch(
         `http://localhost:3000/tasks${task ? `/${task.id}` : ""}`,
         {
@@ -74,40 +86,60 @@ export const TaskForm = ({
   };
 
   return (
-    <Form
-      {...{ control, handleSubmit: handleSubmit(onSubmit) }}
-      classNames={{ root: "space-y-4" }}
-    >
-      <Controller
-        name="title"
-        control={control}
-        render={({ field }) => <Input {...field} placeholder="Título" />}
-      />
-      <Controller
-        name="description"
-        control={control}
-        render={({ field }) => <Input {...field} placeholder="Descrição" />}
-      />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Título</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Título" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Descrição</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Descrição" />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <FormControl>
+                <Select
+                  defaultValue={field.value}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pendente</SelectItem>
+                    <SelectItem value="COMPLETED">Concluída</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormControl>
+            </FormItem>
+          )}
+        />
 
-      <Controller
-        name="status"
-        control={control}
-        render={({ field }) => (
-          <Select defaultValue={status} {...field}>
-            <SelectTrigger id="status">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PENDING">Pendente</SelectItem>
-              <SelectItem value="COMPLETED">Concluída</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      />
-
-      <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Salvando..." : "Salvar"}
-      </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Salvando..." : "Salvar"}
+        </Button>
+      </form>
     </Form>
   );
 };

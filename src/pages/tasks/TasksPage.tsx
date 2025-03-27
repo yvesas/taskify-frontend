@@ -5,6 +5,8 @@ import { Button } from "../../components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
 
@@ -45,7 +47,10 @@ export const TasksPage = () => {
             <Button onClick={handleOpenCreate}>Criar Tarefa</Button>
           </DialogTrigger>
           <DialogContent>
-            <h3 className="text-lg font-semibold mb-4">{dialogTitle}</h3>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>
+              Preencha os campos abaixo para criar ou editar uma tarefa.
+            </DialogDescription>
             <TaskForm task={selectedTask} onClose={handleClose} />
           </DialogContent>
         </Dialog>
