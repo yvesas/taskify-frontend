@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Form } from "../ui/form";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface Task {
   id?: string;
@@ -34,6 +35,7 @@ export const TaskForm = ({
     },
   });
   const { token } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (task) {
@@ -44,6 +46,7 @@ export const TaskForm = ({
   }, [task, setValue]);
 
   const onSubmit = async (data: Task) => {
+    setIsLoading(true);
     try {
       const response = await fetch(
         `http://localhost:3000/tasks${task ? `/${task.id}` : ""}`,
@@ -57,12 +60,16 @@ export const TaskForm = ({
         }
       );
       if (response.ok) {
+        toast.success(`Tarefa ${task ? "atualizada" : "criada"} com sucesso!`);
         onClose();
       } else {
-        console.error("Erro ao salvar tarefa:", response.statusText);
+        toast.error("Erro ao salvar tarefa. Tente novamente.");
       }
     } catch (error) {
+      toast.error("Erro ao salvar tarefa. Tente novamente.");
       console.error("Erro ao salvar tarefa:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,7 +105,9 @@ export const TaskForm = ({
         )}
       />
 
-      <Button type="submit">Salvar</Button>
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? "Salvando..." : "Salvar"}
+      </Button>
     </Form>
   );
 };
