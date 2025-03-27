@@ -1,7 +1,16 @@
-import { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { useAuthStore } from "../../stores/authStore";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Form } from "../ui/form";
+import { useEffect } from "react";
 
 interface Task {
   id?: string;
@@ -17,13 +26,24 @@ export const TaskForm = ({
   task?: Task;
   onClose: () => void;
 }) => {
-  const [title, setTitle] = useState(task?.title || "");
-  const [description, setDescription] = useState(task?.description || "");
-  const [status, setStatus] = useState(task?.status || "PENDING");
+  const { handleSubmit, control, setValue } = useForm<Task>({
+    defaultValues: {
+      title: task?.title || "",
+      description: task?.description || "",
+      status: task?.status || "PENDING",
+    },
+  });
   const { token } = useAuthStore();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (task) {
+      setValue("title", task.title);
+      setValue("description", task.description);
+      setValue("status", task.status);
+    }
+  }, [task, setValue]);
+
+  const onSubmit = async (data: Task) => {
     try {
       const response = await fetch(
         `http://localhost:3000/tasks${task ? `/${task.id}` : ""}`,
@@ -33,7 +53,7 @@ export const TaskForm = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ title, description, status }),
+          body: JSON.stringify(data),
         }
       );
       if (response.ok) {
@@ -47,22 +67,38 @@ export const TaskForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Título"
+    <Form
+      {...{ control, handleSubmit: handleSubmit(onSubmit) }}
+      classNames={{ root: "space-y-4" }}
+    >
+      <Controller
+        name="title"
+        control={control}
+        render={({ field }) => <Input {...field} placeholder="Título" />}
       />
-      <Input
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        placeholder="Descrição"
+      <Controller
+        name="description"
+        control={control}
+        render={({ field }) => <Input {...field} placeholder="Descrição" />}
       />
-      <select value={status} onChange={(e) => setStatus(e.target.value)}>
-        <option value="PENDING">Pendente</option>
-        <option value="COMPLETED">Concluída</option>
-      </select>
+
+      <Controller
+        name="status"
+        control={control}
+        render={({ field }) => (
+          <Select defaultValue={status} {...field}>
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING">Pendente</SelectItem>
+              <SelectItem value="COMPLETED">Concluída</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      />
+
       <Button type="submit">Salvar</Button>
-    </form>
+    </Form>
   );
 };
