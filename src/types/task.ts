@@ -1,6 +1,11 @@
-export interface Task {
-  id?: string;
+export type TaskStatus = "PENDING" | "COMPLETED";
+
+export interface TaskBase {
   title: string;
   description?: string;
-  status: string;
+  status: TaskStatus;
+}
+
+export interface Task extends TaskBase {
+  id?: string;
 }

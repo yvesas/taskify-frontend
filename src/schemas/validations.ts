@@ -1,3 +1,4 @@
+import { TaskStatus } from "@/types/task";
 import { z } from "zod";
 
 export const LoginSchema = z.object({
@@ -11,9 +12,11 @@ export const LoginSchema = z.object({
 
 export const TaskSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(3, "Título deve ter no mínimo 3 caracteres"),
+  title: z.string().min(3),
   description: z.string().optional(),
-  status: z.enum(["PENDING", "COMPLETED"]).default("PENDING"),
+  status: z
+    .enum(["PENDING", "COMPLETED"] as [TaskStatus, TaskStatus])
+    .default("PENDING"),
 });
 
 export type LoginData = z.infer<typeof LoginSchema>;
