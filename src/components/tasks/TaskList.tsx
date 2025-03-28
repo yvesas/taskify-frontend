@@ -71,7 +71,6 @@ export const TaskList = ({
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-2xl font-semibold">Tarefas</h3>
         {isLoading && (
           <span className="text-sm text-gray-500">Carregando...</span>
         )}

@@ -31,17 +31,17 @@ export const TasksPage = () => {
 
   const handleClose = () => {
     setOpen(false);
-    setRefreshTaskList((prev) => !prev); // Força a atualização da lista
+    setRefreshTaskList((prev) => !prev);
   };
 
   const handleTaskUpdated = () => {
-    setRefreshTaskList((prev) => !prev); // Força a atualização da lista
+    setRefreshTaskList((prev) => !prev);
   };
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Taskify</h2>
+        <h1 className="text-2xl font-semibold">Taskify</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleOpenCreate}>Criar Tarefa</Button>
