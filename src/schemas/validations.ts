@@ -12,7 +12,7 @@ export const LoginSchema = z.object({
 
 export const TaskSchema = z.object({
   id: z.string().optional(),
-  title: z.string().min(3),
+  title: z.string().min(3, "O título deve ter no mínimo 3 caracteres"),
   description: z.string().optional(),
   status: z
     .enum(["PENDING", "COMPLETED"] as [TaskStatus, TaskStatus])
