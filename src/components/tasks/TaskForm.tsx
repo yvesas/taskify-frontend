@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "../../stores/authStore";
 import { Input } from "../ui/input";
@@ -13,37 +12,34 @@ import {
 } from "../ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "../ui/form";
 import { useState } from "react";
-import { Task } from "../../types/task";
-import { TaskSchema } from "@/schemas/validations";
+import { TaskData, TaskSchema } from "@/schemas/validations";
 import { useTasks } from "@/hooks/useTasks";
 import { useErrorStore } from "@/stores/errorStore";
 import { globalErrorHandler } from "@/utils/globalErrorHandler";
 
-export const TaskForm = ({
-  task,
-  onClose,
-  onTaskUpdated,
-}: {
-  task?: Task;
+interface TaskFormProps {
+  task?: TaskData;
   onClose: () => void;
   onTaskUpdated?: () => void;
-}) => {
+}
+
+export const TaskForm = ({ task, onClose, onTaskUpdated }: TaskFormProps) => {
   const { token } = useAuthStore();
   const { addTask, updateTask } = useTasks();
   const { setError } = useErrorStore();
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof TaskSchema>>({
+  const form = useForm<TaskData>({
     resolver: zodResolver(TaskSchema),
     defaultValues: {
-      title: task?.title || "",
-      description: task?.description || "",
-      status: task?.status || "PENDING",
+      title: task?.title ?? "",
+      description: task?.description ?? "",
+      status: task?.status ?? "PENDING",
     },
   });
 
-  const onSubmit = async (data: Task) => {
+  const onSubmit = async (data: TaskData) => {
     setIsLoading(true);
     try {
       if (!token) {
@@ -65,9 +61,7 @@ export const TaskForm = ({
           type: "info",
         });
         onClose();
-        if (onTaskUpdated) {
-          onTaskUpdated();
-        }
+        onTaskUpdated?.();
       }
     } catch (error) {
       globalErrorHandler(error);
