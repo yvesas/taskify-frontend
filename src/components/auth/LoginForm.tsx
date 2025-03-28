@@ -1,52 +1,71 @@
-import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-});
-
-type LoginSchema = z.infer<typeof loginSchema>;
+import { LoginData, LoginSchema } from "@/schemas/validations";
+import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { useErrorStore } from "@/stores/errorStore";
 
 export const LoginForm = () => {
   const { login } = useAuth();
+  const { setError } = useErrorStore();
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
+    formState: { errors, isSubmitting },
+  } = useForm<LoginData>({
+    resolver: zodResolver(LoginSchema),
   });
-  const [errorMessage, setErrorMessage] = useState("");
 
-  const onSubmit = async (data: LoginSchema) => {
+  const onSubmit = async (data: LoginData) => {
     try {
       await login(data.email, data.password);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: Error | any) {
-      setErrorMessage(error.message || "Erro ao fazer login.");
+      setError({
+        message: "Login realizado com sucesso!",
+        type: "info",
+      });
+    } catch (error) {
+      globalErrorHandler(error);
     }
   };
+
+  const renderFieldError = (errorMessage?: string) =>
+    errorMessage && <p className="text-red-500 text-sm mt-1">{errorMessage}</p>;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Input type="email" placeholder="Email" {...register("email")} />
-        {errors.email && <p className="text-red-500">{errors.email.message}</p>}
+        <label htmlFor="email" className="sr-only">
+          Email
+        </label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="Email"
+          {...register("email")}
+          aria-invalid={errors.email ? "true" : "false"}
+        />
+        {renderFieldError(errors.email?.message)}
       </div>
+
       <div>
-        <Input type="password" placeholder="Senha" {...register("password")} />
-        {errors.password && (
-          <p className="text-red-500">{errors.password.message}</p>
-        )}
+        <label htmlFor="password" className="sr-only">
+          Senha
+        </label>
+        <Input
+          id="password"
+          type="password"
+          placeholder="Senha"
+          {...register("password")}
+          aria-invalid={errors.password ? "true" : "false"}
+        />
+        {renderFieldError(errors.password?.message)}
       </div>
-      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-      <Button type="submit">Login</Button>
+
+      <Button type="submit" disabled={isSubmitting} className="w-full">
+        {isSubmitting ? "Entrando..." : "Login"}
+      </Button>
     </form>
   );
 };
