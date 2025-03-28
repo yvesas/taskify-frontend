@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useAuthStore } from "../../stores/authStore";
 import { Button } from "../ui/button";
 import {
   Table,
@@ -9,106 +8,137 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Task } from "@/types/task";
+import { useTasks } from "@/hooks/useTasks";
+import { useErrorStore } from "@/stores/errorStore";
+import { globalErrorHandler } from "@/utils/globalErrorHandler";
 
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-}
-
-export const TaskList = ({ onEdit }: { onEdit: (task: Task) => void }) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const { token } = useAuthStore();
+export const TaskList = ({
+  onEdit,
+  refresh,
+}: {
+  onEdit: (task: Task) => void;
+  refresh: boolean;
+}) => {
+  const { tasks, fetchTasks, deleteTask, isLoading } = useTasks();
+  const { setError } = useErrorStore();
   const [filter, setFilter] = useState<string>("all");
+
   const filteredTasks =
     filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const loadTasks = async () => {
       try {
-        const response = await fetch("http://localhost:3000/tasks", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setTasks(data);
-        } else {
-          console.error("Erro ao buscar tarefas:", response.statusText);
-        }
+        await fetchTasks();
       } catch (error) {
-        console.error("Erro ao buscar tarefas:", error);
+        globalErrorHandler(error);
       }
     };
+    loadTasks();
+  }, [fetchTasks, refresh]);
 
-    fetchTasks();
-  }, [token]);
-
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string | undefined) => {
     try {
-      const response = await fetch(`http://localhost:3000/tasks/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        setTasks(tasks.filter((task) => task.id !== id));
-      } else {
-        console.error("Erro ao excluir tarefa:", response.statusText);
+      if (!id) {
+        setError({
+          message: "ID da tarefa inválido",
+          type: "warning",
+        });
+        return;
       }
+
+      await deleteTask(id);
+      setError({
+        message: "Tarefa excluída com sucesso",
+        type: "info",
+      });
     } catch (error) {
-      console.error("Erro ao excluir tarefa:", error);
+      globalErrorHandler(error);
     }
   };
 
+  const renderFilterButton = (filterValue: string, label: string) => (
+    <Button
+      variant={filter === filterValue ? "default" : "outline"}
+      onClick={() => setFilter(filterValue)}
+      className="mr-2"
+    >
+      {label}
+    </Button>
+  );
+
   return (
     <div>
-      <h3 className="text-2xl font-semibold mb-4">Tarefas</h3>
-      <div>
-        <Button onClick={() => setFilter("all")}>Todas</Button>
-        <Button onClick={() => setFilter("PENDING")}>Pendentes</Button>
-        <Button onClick={() => setFilter("COMPLETED")}>Concluídas</Button>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-2xl font-semibold">Tarefas</h3>
+        {isLoading && (
+          <span className="text-sm text-gray-500">Carregando...</span>
+        )}
       </div>
+
+      <div className="mb-4">
+        {renderFilterButton("all", "Todas")}
+        {renderFilterButton("PENDING", "Pendentes")}
+        {renderFilterButton("COMPLETED", "Concluídas")}
+      </div>
+
       <Table className="min-w-full leading-normal">
         <TableHeader>
           <TableRow>
-            <TableHead className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Título
-            </TableHead>
-            <TableHead className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Descrição
-            </TableHead>
-            <TableHead className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Status
-            </TableHead>
-            <TableHead className="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-              Ações
-            </TableHead>
+            <TableHead>Título</TableHead>
+            <TableHead>Descrição</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTasks.map((task) => (
-            <TableRow key={task.id}>
-              <TableCell className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                {task.title}
-              </TableCell>
-              <TableCell className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                {task.description}
-              </TableCell>
-              <TableCell className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                {task.status}
-              </TableCell>
-              <TableCell className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                <Button onClick={() => onEdit(task)}>Editar</Button>
-                <Button
-                  onClick={() => {
-                    handleDelete(task.id);
-                  }}
-                >
-                  Excluir
-                </Button>
+          {filteredTasks.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-gray-500">
+                Nenhuma tarefa encontrada
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            filteredTasks.map((task) => (
+              <TableRow key={task.id}>
+                <TableCell>{task.title}</TableCell>
+                <TableCell>{task.description}</TableCell>
+                <TableCell>
+                  <span
+                    className={`
+                      px-2 py-1 rounded text-xs 
+                      ${
+                        task.status === "COMPLETED"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }
+                    `}
+                  >
+                    {task.status === "PENDING" ? "Pendente" : "Concluída"}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onEdit(task)}
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(task.id)}
+                    >
+                      Excluir
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

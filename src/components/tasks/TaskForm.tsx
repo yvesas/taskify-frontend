@@ -13,33 +13,29 @@ import {
 } from "../ui/select";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "../ui/form";
 import { useState } from "react";
-import { toast } from "sonner";
-
-interface Task {
-  id?: string;
-  title: string;
-  description: string;
-  status: string;
-}
-
-const formSchema = z.object({
-  title: z.string().min(2).max(50),
-  description: z.string().min(2).max(50),
-  status: z.enum(["PENDING", "COMPLETED"]),
-});
+import { Task } from "../../types/task";
+import { TaskSchema } from "@/schemas/validations";
+import { useTasks } from "@/hooks/useTasks";
+import { useErrorStore } from "@/stores/errorStore";
+import { globalErrorHandler } from "@/utils/globalErrorHandler";
 
 export const TaskForm = ({
   task,
   onClose,
+  onTaskUpdated,
 }: {
   task?: Task;
   onClose: () => void;
+  onTaskUpdated?: () => void;
 }) => {
   const { token } = useAuthStore();
+  const { addTask, updateTask } = useTasks();
+  const { setError } = useErrorStore();
+
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof TaskSchema>>({
+    resolver: zodResolver(TaskSchema),
     defaultValues: {
       title: task?.title || "",
       description: task?.description || "",
@@ -48,38 +44,33 @@ export const TaskForm = ({
   });
 
   const onSubmit = async (data: Task) => {
-    console.log("onSubmit called ->", data);
     setIsLoading(true);
     try {
       if (!token) {
-        toast.error("Usuário não autenticado.");
-        return;
-      }
-      if (!data.title || !data.description) {
-        toast.error("Tarefa não informada.");
+        setError({
+          message: "Usuário não autenticado.",
+          type: "error",
+        });
         return;
       }
 
-      const response = await fetch(
-        `http://localhost:3000/tasks${task ? `/${task.id}` : ""}`,
-        {
-          method: task ? "PATCH" : "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(data),
-        }
-      );
-      if (response.ok) {
-        toast.success(`Tarefa ${task ? "atualizada" : "criada"} com sucesso!`);
+      const taskData = { ...data, id: task?.id };
+      const response = task?.id
+        ? await updateTask(taskData)
+        : await addTask(taskData);
+
+      if (response) {
+        setError({
+          message: `Tarefa ${task ? "atualizada" : "criada"} com sucesso!`,
+          type: "info",
+        });
         onClose();
-      } else {
-        toast.error("Erro ao salvar tarefa. Tente novamente.");
+        if (onTaskUpdated) {
+          onTaskUpdated();
+        }
       }
     } catch (error) {
-      toast.error("Erro ao salvar tarefa. Tente novamente.");
-      console.error("Erro ao salvar tarefa:", error);
+      globalErrorHandler(error);
     } finally {
       setIsLoading(false);
     }
@@ -91,24 +82,42 @@ export const TaskForm = ({
         <FormField
           control={form.control}
           name="title"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel>Título</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Título" />
+                <Input
+                  {...field}
+                  placeholder="Título"
+                  aria-invalid={fieldState.error ? "true" : "false"}
+                />
               </FormControl>
+              {fieldState.error && (
+                <p className="text-red-500 text-sm">
+                  {fieldState.error.message}
+                </p>
+              )}
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
           name="description"
-          render={({ field }) => (
+          render={({ field, fieldState }) => (
             <FormItem>
               <FormLabel>Descrição</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="Descrição" />
+                <Input
+                  {...field}
+                  placeholder="Descrição"
+                  aria-invalid={fieldState.error ? "true" : "false"}
+                />
               </FormControl>
+              {fieldState.error && (
+                <p className="text-red-500 text-sm">
+                  {fieldState.error.message}
+                </p>
+              )}
             </FormItem>
           )}
         />

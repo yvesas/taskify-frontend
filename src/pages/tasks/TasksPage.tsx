@@ -5,22 +5,17 @@ import { Button } from "../../components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogTitle,
   DialogTrigger,
+  DialogTitle,
+  DialogDescription,
 } from "../../components/ui/dialog";
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: string;
-}
+import { Task } from "@/types/task";
 
 export const TasksPage = () => {
   const [open, setOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("Criar Tarefa");
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
+  const [refreshTaskList, setRefreshTaskList] = useState(false);
 
   const handleOpenCreate = () => {
     setOpen(true);
@@ -36,6 +31,11 @@ export const TasksPage = () => {
 
   const handleClose = () => {
     setOpen(false);
+    setRefreshTaskList((prev) => !prev); // Força a atualização da lista
+  };
+
+  const handleTaskUpdated = () => {
+    setRefreshTaskList((prev) => !prev); // Força a atualização da lista
   };
 
   return (
@@ -51,11 +51,15 @@ export const TasksPage = () => {
             <DialogDescription>
               Preencha os campos abaixo para criar ou editar uma tarefa.
             </DialogDescription>
-            <TaskForm task={selectedTask} onClose={handleClose} />
+            <TaskForm
+              task={selectedTask}
+              onClose={handleClose}
+              onTaskUpdated={handleTaskUpdated}
+            />
           </DialogContent>
         </Dialog>
       </div>
-      <TaskList onEdit={handleOpenEdit} />
+      <TaskList onEdit={handleOpenEdit} refresh={refreshTaskList} />
     </div>
   );
 };
