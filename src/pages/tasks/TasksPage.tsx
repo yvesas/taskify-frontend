@@ -15,7 +15,6 @@ export const TasksPage = () => {
   const [open, setOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("Criar Tarefa");
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
-  const [refreshTaskList, setRefreshTaskList] = useState(false);
 
   const handleOpenCreate = () => {
     setOpen(true);
@@ -29,13 +28,8 @@ export const TasksPage = () => {
     setDialogTitle("Editar Tarefa");
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     setOpen(false);
-    setRefreshTaskList((prev) => !prev);
-  };
-
-  const handleTaskUpdated = () => {
-    setRefreshTaskList((prev) => !prev);
   };
 
   return (
@@ -51,15 +45,11 @@ export const TasksPage = () => {
             <DialogDescription>
               Preencha os campos abaixo para criar ou editar uma tarefa.
             </DialogDescription>
-            <TaskForm
-              task={selectedTask}
-              onClose={handleClose}
-              onTaskUpdated={handleTaskUpdated}
-            />
+            <TaskForm task={selectedTask} onClose={handleClose} />
           </DialogContent>
         </Dialog>
       </div>
-      <TaskList onEdit={handleOpenEdit} refresh={refreshTaskList} />
+      <TaskList onEdit={handleOpenEdit} />
     </div>
   );
 };

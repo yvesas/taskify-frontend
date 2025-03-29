@@ -43,9 +43,19 @@ export const useTasks = () => {
     setError(null);
     try {
       const result = await TaskService.updateTask(updatedTask);
-      setTasks((prev) =>
-        prev.map((task) => (task.id === updatedTask.id ? result : task))
-      );
+      setTasks((prev) => {
+        console.log("prev -> ", prev);
+        console.log("tasks -> ", tasks);
+
+        if (!prev || prev.length === 0) return prev; // Evita modificar um array vazio
+
+        const updatedTasks = prev.map((task) =>
+          task.id === updatedTask.id ? { ...task, ...result } : task
+        );
+
+        console.log("Updated Tasks:", updatedTasks);
+        return updatedTasks;
+      });
       return result;
     } catch (err: any) {
       setError(err.message);

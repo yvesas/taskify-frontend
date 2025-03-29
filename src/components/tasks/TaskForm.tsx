@@ -20,12 +20,11 @@ import { globalErrorHandler } from "@/utils/globalErrorHandler";
 interface TaskFormProps {
   task?: TaskData;
   onClose: () => void;
-  onTaskUpdated?: () => void;
 }
 
-export const TaskForm = ({ task, onClose, onTaskUpdated }: TaskFormProps) => {
+export const TaskForm = ({ task, onClose }: TaskFormProps) => {
   const { token } = useAuthStore();
-  const { addTask, updateTask } = useTasks();
+  const { addTask, updateTask, fetchTasks } = useTasks();
   const { setError } = useErrorStore();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -60,8 +59,8 @@ export const TaskForm = ({ task, onClose, onTaskUpdated }: TaskFormProps) => {
           message: `Tarefa ${task ? "atualizada" : "criada"} com sucesso!`,
           type: "info",
         });
+        await fetchTasks();
         onClose();
-        onTaskUpdated?.();
       }
     } catch (error) {
       globalErrorHandler(error);

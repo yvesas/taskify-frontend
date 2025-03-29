@@ -13,19 +13,11 @@ import { useTasks } from "@/hooks/useTasks";
 import { useErrorStore } from "@/stores/errorStore";
 import { globalErrorHandler } from "@/utils/globalErrorHandler";
 
-export const TaskList = ({
-  onEdit,
-  refresh,
-}: {
-  onEdit: (task: Task) => void;
-  refresh: boolean;
-}) => {
+export const TaskList = ({ onEdit }: { onEdit: (task: Task) => void }) => {
   const { tasks, fetchTasks, deleteTask, isLoading } = useTasks();
   const { setError } = useErrorStore();
   const [filter, setFilter] = useState<string>("all");
-
-  const filteredTasks =
-    filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -36,7 +28,18 @@ export const TaskList = ({
       }
     };
     loadTasks();
-  }, [fetchTasks, refresh]);
+  }, [fetchTasks]);
+
+  useEffect(() => {
+    const filtered =
+      filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
+
+    console.log("Tasks:", tasks);
+    console.log("Filter:", filter);
+    console.log("Filtered Tasks:", filtered);
+
+    setFilteredTasks(filtered);
+  }, [tasks, filter]);
 
   const handleDelete = async (id: string | undefined) => {
     try {
