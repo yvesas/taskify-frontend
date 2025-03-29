@@ -47,7 +47,7 @@ export const useTasks = () => {
         console.log("prev -> ", prev);
         console.log("tasks -> ", tasks);
 
-        if (!prev || prev.length === 0) return prev; // Evita modificar um array vazio
+        if (!prev || prev.length === 0) return prev;
 
         const updatedTasks = prev.map((task) =>
           task.id === updatedTask.id ? { ...task, ...result } : task
