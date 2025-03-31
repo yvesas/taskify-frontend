@@ -9,25 +9,18 @@ import {
   TableRow,
 } from "../ui/table";
 import { Task } from "@/types/task";
-import { useTasks } from "@/hooks/useTasks";
-import { useErrorStore } from "@/stores/errorStore";
+import { useErrorStore } from "@/stores/useErrorStore";
 import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { useTaskStore } from "@/stores/useTaskStore";
 
 export const TaskList = ({ onEdit }: { onEdit: (task: Task) => void }) => {
-  const { tasks, fetchTasks, deleteTask, isLoading } = useTasks();
+  const { tasks, fetchTasks, deleteTask, isLoading } = useTaskStore();
   const { setError } = useErrorStore();
   const [filter, setFilter] = useState<string>("all");
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
 
   useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        await fetchTasks();
-      } catch (error) {
-        globalErrorHandler(error);
-      }
-    };
-    loadTasks();
+    fetchTasks();
   }, [fetchTasks]);
 
   useEffect(() => {

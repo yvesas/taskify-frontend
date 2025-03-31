@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useAuthStore } from "@/stores/authStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 class ApiClient {
   private static BASE_URL = "http://localhost:3000";
 
@@ -8,7 +8,7 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     // try {
-    const token = useAuthStore.getState().getToken();
+    const token = useAuthStore.getState().token;
 
     const headers = new Headers(options.headers);
 

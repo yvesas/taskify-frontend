@@ -20,9 +20,3 @@ export class TaskService {
     return ApiClient.delete(`${this.ENDPOINT}/${id}`);
   }
 }
-// Usage example
-// const taskService = new TaskService();
-// taskService.getTasks().then(tasks => console.log(tasks));
-// taskService.createTask({ title: "New Task", description: "Task description" }).then(task => console.log(task));
-// taskService.updateTask({ id: "1", title: "Updated Task", description: "Updated description" }).then(task => console.log(task));
-// taskService.deleteTask("1").then(() => console.log("Task deleted"));

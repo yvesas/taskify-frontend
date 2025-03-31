@@ -1,7 +1,7 @@
 import BackgroundPaths from "@/components/ui/background-paths";
 import { RegisterForm } from "../../components/auth/RegisterForm";
 
-export const RegisterPage = () => {
+const RegisterPage = () => {
   return (
     <BackgroundPaths>
       <div className="flex justify-center items-center h-screen">
@@ -13,3 +13,5 @@ export const RegisterPage = () => {
     </BackgroundPaths>
   );
 };
+
+export default RegisterPage;

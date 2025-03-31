@@ -1,14 +1,14 @@
-import { useAuth } from "../../hooks/useAuth";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, RegisterData } from "@/schemas/validations";
 import { globalErrorHandler } from "@/utils/globalErrorHandler";
-import { useErrorStore } from "@/stores/errorStore";
+import { useErrorStore } from "@/stores/useErrorStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export const RegisterForm = () => {
-  const { register: registerUser } = useAuth();
+  const { register: registerUser } = useAuthStore();
   const { setError } = useErrorStore();
   const {
     register,

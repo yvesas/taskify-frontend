@@ -1,7 +1,7 @@
 import BackgroundPaths from "@/components/ui/background-paths";
 import { LoginForm } from "../../components/auth/LoginForm";
 
-export const LoginPage = () => {
+const LoginPage = () => {
   return (
     <BackgroundPaths>
       <div className="flex justify-center items-center h-screen">
@@ -13,3 +13,5 @@ export const LoginPage = () => {
     </BackgroundPaths>
   );
 };
+
+export default LoginPage;

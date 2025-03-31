@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { useErrorStore } from "@/stores/errorStore";
-import { useAuthStore } from "@/stores/authStore";
+import { useErrorStore } from "@/stores/useErrorStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export const globalErrorHandler = (error: unknown) => {
   const errorStore = useErrorStore.getState();
   const authStore = useAuthStore.getState();
 
-  console.log("OQ tem de erro -> ", error);
+  console.log("[globalErrorHandler] -> ", error);
 
   if (error instanceof z.ZodError) {
     const formattedErrors = error.errors.map((err) => err.message).join(", ");

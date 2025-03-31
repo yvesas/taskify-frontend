@@ -1,7 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useErrorStore } from "@/stores/errorStore";
+import { useErrorStore } from "@/stores/useErrorStore";
 
 interface Props {
   children: ReactNode;

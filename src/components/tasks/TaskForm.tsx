@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuthStore } from "../../stores/authStore";
+import { useAuthStore } from "../../stores/useAuthStore";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {
@@ -13,9 +13,10 @@ import {
 import { Form, FormField, FormItem, FormLabel, FormControl } from "../ui/form";
 import { useState } from "react";
 import { TaskData, TaskSchema } from "@/schemas/validations";
-import { useTasks } from "@/hooks/useTasks";
-import { useErrorStore } from "@/stores/errorStore";
+import { useErrorStore } from "@/stores/useErrorStore";
 import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { Task } from "@/types/task";
+import { useTaskStore } from "@/stores/useTaskStore";
 
 interface TaskFormProps {
   task?: TaskData;
@@ -24,7 +25,7 @@ interface TaskFormProps {
 
 export const TaskForm = ({ task, onClose }: TaskFormProps) => {
   const { token } = useAuthStore();
-  const { addTask, updateTask, fetchTasks } = useTasks();
+  const { addTask, updateTask } = useTaskStore();
   const { setError } = useErrorStore();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +50,7 @@ export const TaskForm = ({ task, onClose }: TaskFormProps) => {
         return;
       }
 
-      const taskData = { ...data, id: task?.id };
+      const taskData = { ...data, id: task?.id } as Task;
       const response = task?.id
         ? await updateTask(taskData)
         : await addTask(taskData);
@@ -59,7 +60,6 @@ export const TaskForm = ({ task, onClose }: TaskFormProps) => {
           message: `Tarefa ${task ? "atualizada" : "criada"} com sucesso!`,
           type: "info",
         });
-        await fetchTasks();
         onClose();
       }
     } catch (error) {

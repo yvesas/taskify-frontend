@@ -11,7 +11,7 @@ import {
 } from "../../components/ui/dialog";
 import { Task } from "@/types/task";
 
-export const TasksPage = () => {
+const TasksPage = () => {
   const [open, setOpen] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("Criar Tarefa");
   const [selectedTask, setSelectedTask] = useState<Task | undefined>(undefined);
@@ -53,3 +53,5 @@ export const TasksPage = () => {
     </div>
   );
 };
+
+export default TasksPage;
