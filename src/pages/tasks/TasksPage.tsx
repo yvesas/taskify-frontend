@@ -10,6 +10,7 @@ import {
   DialogDescription,
 } from "../../components/ui/dialog";
 import { Task } from "@/types/task";
+import { ErrorBoundaryWrapper } from "@/components/ErrorBoundary";
 
 const TasksPage = () => {
   const [open, setOpen] = useState(false);
@@ -32,25 +33,33 @@ const TasksPage = () => {
     setOpen(false);
   };
 
+  const handleReset = () => {
+    setOpen(false);
+    setSelectedTask(undefined);
+    setDialogTitle("Criar Tarefa");
+  };
+
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Taskify</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleOpenCreate}>Criar Tarefa</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogTitle>{dialogTitle}</DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo para criar ou editar uma tarefa.
-            </DialogDescription>
-            <TaskForm task={selectedTask} onClose={handleClose} />
-          </DialogContent>
-        </Dialog>
+    <ErrorBoundaryWrapper onReset={handleReset}>
+      <div className="p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-semibold">Taskify</h1>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={handleOpenCreate}>Criar Tarefa</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogTitle>{dialogTitle}</DialogTitle>
+              <DialogDescription>
+                Preencha os campos abaixo para criar ou editar uma tarefa.
+              </DialogDescription>
+              <TaskForm task={selectedTask} onClose={handleClose} />
+            </DialogContent>
+          </Dialog>
+        </div>
+        <TaskList onEdit={handleOpenEdit} />
       </div>
-      <TaskList onEdit={handleOpenEdit} />
-    </div>
+    </ErrorBoundaryWrapper>
   );
 };
 
