@@ -7,37 +7,37 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    // try {
-    const token = useAuthStore.getState().token;
+    try {
+      const token = useAuthStore.getState().token;
 
-    const headers = new Headers(options.headers);
+      const headers = new Headers(options.headers);
 
-    if (token) {
-      headers.append("Authorization", `Bearer ${token}`);
+      if (token) {
+        headers.append("Authorization", `Bearer ${token}`);
+      }
+      headers.append("Content-Type", "application/json");
+
+      const response = await fetch(`${this.BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/login";
+        throw new Error("Unauthorized");
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro na requisição");
+      }
+
+      const data = await response.json();
+
+      return data;
+    } catch (error) {
+      throw error;
     }
-    headers.append("Content-Type", "application/json");
-
-    const response = await fetch(`${this.BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    if (response.status === 401) {
-      window.location.href = "/login";
-      throw new Error("Unauthorized");
-    }
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Erro na requisição");
-    }
-
-    const data = await response.json();
-
-    return data;
-    // } catch (error) {
-    //   throw error;
-    // }
   }
 
   static get<T>(endpoint: string) {
