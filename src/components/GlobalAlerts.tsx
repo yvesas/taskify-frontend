@@ -1,28 +1,34 @@
 import { useEffect } from "react";
 import { useAlertStore } from "@/stores/useAlertStore";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 
 export const GlobalAlerts = () => {
   const { alerts, dismissAlert } = useAlertStore();
 
   useEffect(() => {
     alerts.forEach((alert) => {
-      switch (alert.type) {
-        case "error":
-          toast.error(alert.message, { id: alert.id });
-          break;
-        case "warning":
-          toast.warning(alert.message, { id: alert.id });
-          break;
-        case "success":
-          toast.success(alert.message, { id: alert.id });
-          break;
-        default:
-          toast.info(alert.message, { id: alert.id });
+      const toastId = toast[alert.type](alert.message, {
+        id: alert.id,
+        onAutoClose: () => dismissAlert(alert.id!),
+      });
+
+      if (toastId !== alert.id) {
+        dismissAlert(alert.id!);
       }
-      dismissAlert(alert.id!);
     });
   }, [alerts, dismissAlert]);
 
-  return null;
+  return (
+    <Toaster
+      position="top-right"
+      richColors
+      closeButton
+      toastOptions={{
+        style: {
+          fontFamily: "inherit",
+          fontSize: "0.875rem",
+        },
+      }}
+    />
+  );
 };

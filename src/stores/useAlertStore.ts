@@ -16,19 +16,9 @@ interface AlertState {
 
 export const useAlertStore = create<AlertState>((set) => ({
   alerts: [],
-  showAlert: (message, type = "info", timeout = 5000) => {
+  showAlert: (message, type = "info") => {
     const id = Math.random().toString(36).substring(2, 9);
-    const newAlert = { message, type, id };
-
-    set((state) => ({ alerts: [...state.alerts, newAlert] }));
-
-    if (timeout > 0) {
-      setTimeout(() => {
-        set((state) => ({
-          alerts: state.alerts.filter((alert) => alert.id !== id),
-        }));
-      }, timeout);
-    }
+    set((state) => ({ alerts: [...state.alerts, { message, type, id }] }));
   },
   dismissAlert: (id) => {
     set((state) => ({
