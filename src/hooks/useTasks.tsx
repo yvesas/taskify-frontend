@@ -38,32 +38,35 @@ export const useTasks = () => {
     }
   }, []);
 
-  const updateTask = useCallback(async (updatedTask: Task) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const result = await TaskService.updateTask(updatedTask);
-      setTasks((prev) => {
-        console.log("prev -> ", prev);
-        console.log("tasks -> ", tasks);
+  const updateTask = useCallback(
+    async (updatedTask: Task) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const result = await TaskService.updateTask(updatedTask);
+        setTasks((prev) => {
+          console.log("prev -> ", prev);
+          console.log("tasks -> ", tasks);
 
-        if (!prev || prev.length === 0) return prev;
+          if (!prev || prev.length === 0) return prev;
 
-        const updatedTasks = prev.map((task) =>
-          task.id === updatedTask.id ? { ...task, ...result } : task
-        );
+          const updatedTasks = prev.map((task) =>
+            task.id === updatedTask.id ? { ...task, ...result } : task
+          );
 
-        console.log("Updated Tasks:", updatedTasks);
-        return updatedTasks;
-      });
-      return result;
-    } catch (err: any) {
-      setError(err.message);
-      globalErrorHandler(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+          console.log("Updated Tasks:", updatedTasks);
+          return updatedTasks;
+        });
+        return result;
+      } catch (err: any) {
+        setError(err.message);
+        globalErrorHandler(err);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [tasks]
+  );
 
   const deleteTask = useCallback(async (id: string) => {
     setIsLoading(true);

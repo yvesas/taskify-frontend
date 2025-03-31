@@ -6,6 +6,8 @@ export const globalErrorHandler = (error: unknown) => {
   const errorStore = useErrorStore.getState();
   const authStore = useAuthStore.getState();
 
+  console.log("OQ tem de erro -> ", error);
+
   if (error instanceof z.ZodError) {
     const formattedErrors = error.errors.map((err) => err.message).join(", ");
     errorStore.setError({
