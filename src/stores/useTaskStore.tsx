@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { Task } from "@/types/task";
 import { TaskService } from "@/services/taskService";
-import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { globalAlertHandler } from "@/utils/globalAlertHandler";
 
 interface TaskStore {
   tasks: Task[];
@@ -22,7 +22,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
       const fetchedTasks = await TaskService.getTasks();
       set({ tasks: fetchedTasks });
     } catch (err) {
-      globalErrorHandler(err);
+      globalAlertHandler(err);
     } finally {
       set({ isLoading: false });
     }
@@ -35,7 +35,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
       set((state) => ({ tasks: [...state.tasks, createdTask] }));
       return createdTask;
     } catch (err) {
-      globalErrorHandler(err);
+      globalAlertHandler(err);
     } finally {
       set({ isLoading: false });
     }
@@ -52,7 +52,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
       }));
       return result;
     } catch (err) {
-      globalErrorHandler(err);
+      globalAlertHandler(err);
     } finally {
       set({ isLoading: false });
     }
@@ -66,7 +66,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
         tasks: state.tasks.filter((task) => task.id !== id),
       }));
     } catch (err) {
-      globalErrorHandler(err);
+      globalAlertHandler(err);
     } finally {
       set({ isLoading: false });
     }

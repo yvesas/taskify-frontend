@@ -13,8 +13,8 @@ import {
 import { Form, FormField, FormItem, FormLabel, FormControl } from "../ui/form";
 import { useState } from "react";
 import { TaskData, TaskSchema } from "@/schemas/validations";
-import { useErrorStore } from "@/stores/useErrorStore";
-import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { useAlertStore } from "@/stores/useAlertStore";
+import { globalAlertHandler } from "@/utils/globalAlertHandler";
 import { Task } from "@/types/task";
 import { useTaskStore } from "@/stores/useTaskStore";
 
@@ -26,7 +26,7 @@ interface TaskFormProps {
 export const TaskForm = ({ task, onClose }: TaskFormProps) => {
   const { token } = useAuthStore();
   const { addTask, updateTask } = useTaskStore();
-  const { setError } = useErrorStore();
+  const { showAlert } = useAlertStore();
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,10 +43,7 @@ export const TaskForm = ({ task, onClose }: TaskFormProps) => {
     setIsLoading(true);
     try {
       if (!token) {
-        setError({
-          message: "Usuário não autenticado.",
-          type: "error",
-        });
+        showAlert("Usuário não autenticado.", "error");
         return;
       }
 
@@ -56,14 +53,14 @@ export const TaskForm = ({ task, onClose }: TaskFormProps) => {
         : await addTask(taskData);
 
       if (response) {
-        setError({
-          message: `Tarefa ${task ? "atualizada" : "criada"} com sucesso!`,
-          type: "info",
-        });
+        showAlert(
+          `Tarefa ${task ? "atualizada" : "criada"} com sucesso!`,
+          "success"
+        );
         onClose();
       }
     } catch (error) {
-      globalErrorHandler(error);
+      globalAlertHandler(error);
     } finally {
       setIsLoading(false);
     }

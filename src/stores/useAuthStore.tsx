@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { AuthService } from "@/services/AuthService";
-import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { globalAlertHandler } from "@/utils/globalAlertHandler";
 
 interface AuthStore {
   token: string | null;
@@ -35,7 +35,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       get().setToken(access_token);
     } catch (err) {
       set({ error: (err as Error).message });
-      globalErrorHandler(err);
+      globalAlertHandler(err);
     } finally {
       set({ isLoading: false });
     }
@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       get().setToken(access_token);
     } catch (err) {
       set({ error: (err as Error).message });
-      globalErrorHandler(err);
+      globalAlertHandler(err);
     } finally {
       set({ isLoading: false });
     }

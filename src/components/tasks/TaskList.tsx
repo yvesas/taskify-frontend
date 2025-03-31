@@ -9,13 +9,13 @@ import {
   TableRow,
 } from "../ui/table";
 import { Task } from "@/types/task";
-import { useErrorStore } from "@/stores/useErrorStore";
-import { globalErrorHandler } from "@/utils/globalErrorHandler";
+import { useAlertStore } from "@/stores/useAlertStore";
+import { globalAlertHandler } from "@/utils/globalAlertHandler";
 import { useTaskStore } from "@/stores/useTaskStore";
 
 export const TaskList = ({ onEdit }: { onEdit: (task: Task) => void }) => {
   const { tasks, fetchTasks, deleteTask, isLoading } = useTaskStore();
-  const { setError } = useErrorStore();
+  const { showAlert } = useAlertStore();
   const [filter, setFilter] = useState<string>("all");
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
 
@@ -26,31 +26,20 @@ export const TaskList = ({ onEdit }: { onEdit: (task: Task) => void }) => {
   useEffect(() => {
     const filtered =
       filter === "all" ? tasks : tasks.filter((task) => task.status === filter);
-
-    console.log("Tasks:", tasks);
-    console.log("Filter:", filter);
-    console.log("Filtered Tasks:", filtered);
-
     setFilteredTasks(filtered);
   }, [tasks, filter]);
 
   const handleDelete = async (id: string | undefined) => {
     try {
       if (!id) {
-        setError({
-          message: "ID da tarefa inválido",
-          type: "warning",
-        });
+        showAlert("ID da tarefa inválido", "warning");
         return;
       }
 
       await deleteTask(id);
-      setError({
-        message: "Tarefa excluída com sucesso",
-        type: "info",
-      });
+      showAlert("Tarefa excluída com sucesso.", "info");
     } catch (error) {
-      globalErrorHandler(error);
+      globalAlertHandler(error);
     }
   };
 

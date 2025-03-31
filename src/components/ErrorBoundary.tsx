@@ -1,11 +1,10 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useErrorStore } from "@/stores/useErrorStore";
 
 interface Props {
   children: ReactNode;
-  fallbackRender?: (error: Error) => ReactNode;
+  fallbackRender?: (props: { error: Error; reset: () => void }) => ReactNode;
 }
 
 interface State {
@@ -24,33 +23,38 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    const setError = useErrorStore.getState().setError;
-    setError({
-      message: error.message,
-      type: "error",
+    console.error("ErrorBoundary caught:", error, errorInfo);
+    console.error("Path:", window.location.pathname);
+    console.error("Component Stack:", errorInfo.componentStack);
+    this.setState({
+      error: new Error(
+        `Ocorreu um erro: ${error.message}\nLocal: ${window.location.pathname}`
+      ),
     });
 
-    // FIXME Log de erro (ser substituído por serviço de monitoramento)
-    console.error("Uncaught error:", error, errorInfo);
+    // FIXME: enviar para serviço de monitoramento (Sentry, etc)
+    // logErrorToService(error, errorInfo);
   }
 
   handleReset = () => {
     this.setState({ hasError: false, error: undefined });
-    useErrorStore.getState().clearError();
   };
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallbackRender) {
-        return this.props.fallbackRender(this.state.error!);
+        return this.props.fallbackRender({
+          error: this.state.error!,
+          reset: this.handleReset,
+        });
       }
 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
           <Alert variant="destructive" className="max-w-md">
-            <AlertTitle>Erro Crítico</AlertTitle>
+            <AlertTitle>Algo deu errado</AlertTitle>
             <AlertDescription>
-              {this.state.error?.message || "Erro inesperado"}
+              {this.state.error?.message || "Ocorreu um erro inesperado"}
             </AlertDescription>
             <div className="mt-4">
               <Button
@@ -58,7 +62,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleReset}
                 className="w-full"
               >
-                Recuperar
+                Tentar novamente
               </Button>
             </div>
           </Alert>
@@ -70,11 +74,44 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Wrapper for hooks
-export const ErrorBoundaryWrapper: React.FC<Props> = ({
+interface ErrorBoundaryWrapperProps {
+  children: ReactNode;
+  onReset?: () => void;
+}
+
+export const ErrorBoundaryWrapper = ({
   children,
-  fallbackRender,
-}) => {
+  onReset,
+}: ErrorBoundaryWrapperProps) => {
+  const fallbackRender = ({
+    error,
+    reset,
+  }: {
+    error: Error;
+    reset: () => void;
+  }) => {
+    const handleReset = () => {
+      reset();
+      onReset?.();
+    };
+
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertTitle>Erro crítico</AlertTitle>
+          <AlertDescription>
+            {error.message || "Ocorreu um erro inesperado"}
+          </AlertDescription>
+          <div className="mt-4">
+            <Button onClick={handleReset} className="w-full">
+              Recarregar aplicação
+            </Button>
+          </div>
+        </Alert>
+      </div>
+    );
+  };
+
   return (
     <ErrorBoundary fallbackRender={fallbackRender}>{children}</ErrorBoundary>
   );

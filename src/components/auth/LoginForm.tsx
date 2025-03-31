@@ -3,13 +3,13 @@ import { Button } from "../ui/button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginData, LoginSchema } from "@/schemas/validations";
-import { globalErrorHandler } from "@/utils/globalErrorHandler";
-import { useErrorStore } from "@/stores/useErrorStore";
+import { useAlertStore } from "@/stores/useAlertStore";
+import { globalAlertHandler } from "@/utils/globalAlertHandler";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export const LoginForm = () => {
   const { login } = useAuthStore();
-  const { setError } = useErrorStore();
+  const { showAlert } = useAlertStore();
   const {
     register,
     handleSubmit,
@@ -21,12 +21,9 @@ export const LoginForm = () => {
   const onSubmit = async (data: LoginData) => {
     try {
       await login(data.email, data.password);
-      setError({
-        message: "Login realizado com sucesso!",
-        type: "info",
-      });
+      showAlert("Login realizado com sucesso!", "success");
     } catch (error) {
-      globalErrorHandler(error);
+      globalAlertHandler(error);
     }
   };
 
